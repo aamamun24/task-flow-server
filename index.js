@@ -27,6 +27,7 @@ async function run() {
         // await client.connect();
 
         const userCollection = client.db('taskFlowDB').collection('users')
+        const taskCollection = client.db('taskFlowDB').collection('tasks')
 
         // jwt related api
         app.post('/jwt', async (req, res) => {
@@ -50,24 +51,7 @@ async function run() {
             })
         }
 
-        // verify admin
-        const verifyAdmin = async (req, res, next) => {
-            const email = req.decoded.email;
-            const query = { email: email }
-            const user = await userCollection.findOne(query)
-            const isAdmin = user?.role === 'admin'
-            if (!isAdmin) {
-                return res.status(403).send({ message: 'forbidden access' })
-            }
-            next()
-        }
-
         // users collection
-        app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
-            const result = await userCollection.find().toArray()
-            res.send(result)
-        })
-
         app.get('/users/:email', verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { email: email }
@@ -87,6 +71,19 @@ async function run() {
             res.send(result)
         })
 
+        // task related api
+        app.get('/task/:email', verifyToken, async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await userCollection.findOne(query)
+            res.send(result)
+        })
+
+        app.post('/task', verifyToken, async (req, res) => {
+            const item = req.body;
+            const result = await taskCollection.insertOne(item)
+            res.send(result)
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
