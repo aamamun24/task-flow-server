@@ -75,7 +75,7 @@ async function run() {
         app.get('/task/:email', verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { email: email }
-            const result = await userCollection.findOne(query)
+            const result = await taskCollection.find(query).sort({ createdAt: 1 }).toArray();
             res.send(result)
         })
 
